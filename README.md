@@ -1,8 +1,3 @@
-Here's a draft for your `README.md` file based on the script you provided:
-
-```markdown
-# Duplicate File Detector
-
 This Python script is a powerful and efficient tool designed to detect duplicate files within a specified folder and its subfolders. It uses multi-threading and cryptographic hashing to ensure reliable detection while minimizing resource usage.
 
 ---
@@ -24,7 +19,7 @@ This Python script is a powerful and efficient tool designed to detect duplicate
 
 1. Clone this repository or download the script:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/MasterCard007/DuplicateFileDetector.git
    ```
 2. Ensure you have Python 3.7 or higher installed.
 
@@ -39,7 +34,7 @@ This Python script is a powerful and efficient tool designed to detect duplicate
 
 1. Run the script using the command line:
    ```bash
-   python DuplicateFileDetector_8.py
+   python DuplicateFileDetector.py
    ```
 
 2. Enter the path of the main folder you want to scan when prompted:
