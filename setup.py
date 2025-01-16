@@ -6,13 +6,13 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="duplicate-file-detector",
-    version="1.0.0",
-    author="Your Name",
+    version="0.0.8",
+    author="MasterCard007",
     author_email="",
     description="A Python tool to detect duplicate files in folders and subfolders.",
     long_description=long_description,
-    long_description_content_type="text/markdown",
-    url="", 
+    long_description_content_type="",
+    url="https://github.com/MasterCard007/DuplicateFileDetector/", 
     packages=find_packages(),
     py_modules=["DuplicateFileDetector_8"],
     classifiers=[
