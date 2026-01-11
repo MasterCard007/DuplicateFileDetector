@@ -129,13 +129,15 @@ def process_subfolders(main_folder):
     all_files = get_all_files(main_folder)
     total_size = calculate_total_size(all_files)
     duplicate_pairs = len(duplicates)
+    duplicate_files = {file1 for file1, _ in duplicates}
     duplicate_bytes = 0
-    for file1, _ in duplicates:
+    for file1 in duplicate_files:
         try:
             duplicate_bytes += file1.stat().st_size
         except OSError:
             continue
     duplicate_percent = (duplicate_bytes / total_size * 100) if total_size else 0
+    unique_size = total_size - duplicate_bytes
 
     if duplicates:
         print("\033[93m\nDuplicate Files Found:\033[0m")  # Yellow for heading
@@ -200,6 +202,8 @@ def process_subfolders(main_folder):
         print("\033[97mNo duplicate files found in the folder.\033[0m")  # White for no duplicates
 
     print("\033[92mSummary:\033[0m")
+    print(f"\033[94mTotal folder size: {format_file_size(total_size)}\033[0m")
+    print(f"\033[94mTotal size without duplicates: {format_file_size(unique_size)}\033[0m")
     print(f"\033[94mTotal duplicate size: {format_file_size(duplicate_bytes)}\033[0m")
     print(f"\033[94mTotal duplicate pairs: {duplicate_pairs}\033[0m")
     print(f"\033[94mDuplicate size percentage: {duplicate_percent:.2f}%\033[0m")

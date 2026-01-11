@@ -12,6 +12,7 @@ This Python script is a powerful and efficient tool designed to detect duplicate
 - **Duplicate Reporting**:
   - Identifies duplicate files with detailed output.
   - Generates a comparison table of duplicate file pairs, including their file sizes.
+  - Summarizes total folder size, duplicate size, and size without duplicates.
 
 ---
 
@@ -55,6 +56,7 @@ For each subfolder scanned:
 - Duplicate files are listed with:
   - File paths.
   - File sizes (formatted for readability).
+- A summary shows the total folder size, size without duplicates, total duplicate size, and duplicate percentage.
 - If no duplicates are found, a message indicates the folder is clean.
 
 ### Example Output
@@ -66,7 +68,11 @@ File 1: /path/to/folder/subfolder/file1.txt
 File 2: /path/to/folder/subfolder/file2.txt
     Size: 15.3 KB
 
-No duplicate files found in the folder.
+Summary:
+Total folder size: 250.1 MiB
+Total size without duplicates: 230.8 MiB
+Total duplicate size: 19.3 MiB
+Duplicate size percentage: 7.72%
 ```
 
 ---

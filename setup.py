@@ -6,15 +6,15 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="duplicate-file-detector",
-    version="0.0.8",
+    version="0.0.9",
     author="MasterCard007",
     author_email="",
     description="A Python tool to detect duplicate files in folders and subfolders.",
     long_description=long_description,
-    long_description_content_type="",
+    long_description_content_type="text/markdown",
     url="https://github.com/MasterCard007/DuplicateFileDetector/", 
     packages=find_packages(),
-    py_modules=["DuplicateFileDetector_8"],
+    py_modules=["DuplicateFileDetector"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
@@ -28,9 +28,4 @@ setup(
         "pandas",
         "tqdm",
     ],
-    entry_points={
-        "console_scripts": [
-            "duplicate-file-detector=DuplicateFileDetector_8:main",
-        ],
-    },
 )
