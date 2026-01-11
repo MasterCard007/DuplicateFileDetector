@@ -139,12 +139,41 @@ def process_subfolders(main_folder):
 
     if duplicates:
         print("\033[93m\nDuplicate Files Found:\033[0m")  # Yellow for heading
-        for index, row in generate_comparison_table(duplicates).iterrows():
+        table_rows = []
+        for _, row in generate_comparison_table(duplicates).iterrows():
             file1 = Path(row["File 1 Path"]).relative_to(main_folder)
             file2 = Path(row["File 2 Path"]).relative_to(main_folder)
-            print(f"\033[91mFile 1: {file1}\033[0m")  # Red for File 1
-            print(f"\033[91mFile 2: {file2}\033[0m")  # Red for File 2
-            print(f"    \033[94mSize: {format_file_size(row['File Size (bytes)'])}\033[0m\n")  # Blue with formatted size
+            table_rows.append(
+                (
+                    str(file1.parent) if str(file1.parent) != "." else "",
+                    file1.name,
+                    str(file2.parent) if str(file2.parent) != "." else "",
+                    file2.name,
+                    format_file_size(row["File Size (bytes)"]),
+                )
+            )
+
+        headers = ("File 1 Path", "File 1 Name", "File 2 Path", "File 2 Name", "Size")
+        col_widths = [
+            max(len(headers[0]), *(len(row[0]) for row in table_rows)),
+            max(len(headers[1]), *(len(row[1]) for row in table_rows)),
+            max(len(headers[2]), *(len(row[2]) for row in table_rows)),
+            max(len(headers[3]), *(len(row[3]) for row in table_rows)),
+            max(len(headers[4]), *(len(row[4]) for row in table_rows)),
+        ]
+
+        header_line = " | ".join(header.ljust(width) for header, width in zip(headers, col_widths))
+        separator_line = "-+-".join("-" * width for width in col_widths)
+        print(header_line)
+        print(separator_line)
+
+        for path1, name1, path2, name2, size in table_rows:
+            colored_path1 = f"\033[91m{path1.ljust(col_widths[0])}\033[0m"
+            colored_name1 = f"\033[92m{name1.ljust(col_widths[1])}\033[0m"
+            colored_path2 = f"\033[91m{path2.ljust(col_widths[2])}\033[0m"
+            colored_name2 = f"\033[92m{name2.ljust(col_widths[3])}\033[0m"
+            colored_size = f"\033[94m{size.ljust(col_widths[4])}\033[0m"
+            print(" | ".join([colored_path1, colored_name1, colored_path2, colored_name2, colored_size]))
     else:
         print("\033[97mNo duplicate files found in the folder.\033[0m")  # White for no duplicates
 
