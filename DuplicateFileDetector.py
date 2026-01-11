@@ -108,9 +108,9 @@ def generate_comparison_table(duplicates):
     return pd.DataFrame(table_data)
 
 def format_file_size(size_in_bytes):
-    """Convert file size to a human-readable format with 4 significant figures."""
-    for unit in ["bytes", "KB", "MB", "GB"]:
-        if size_in_bytes < 1024 or unit == "GB":
+    """Convert file size to a human-readable format with 4 significant figures (binary units)."""
+    for unit in ["bytes", "KiB", "MiB", "GiB"]:
+        if size_in_bytes < 1024 or unit == "GiB":
             return f"{size_in_bytes:.4g} {unit}"
         size_in_bytes /= 1024
 
