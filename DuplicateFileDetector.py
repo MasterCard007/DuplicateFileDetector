@@ -13,55 +13,86 @@ def get_folder_path(prompt):
     return Path(path)
 
 def get_all_files(directory):
-    return [f for f in directory.rglob('*') if f.is_file() and not f.name.startswith('.')]
+    files = []
+    for file_path in directory.rglob('*'):
+        try:
+            if file_path.is_file() and not file_path.name.startswith('.'):
+                files.append(file_path)
+        except OSError:
+            continue
+    return files
 
 def file_hash(file_path, chunk_size=131072):
     hasher = hashlib.blake2b()
-    with file_path.open('rb') as f:
-        while True:
-            data = f.read(chunk_size)
-            if not data:
-                break
-            hasher.update(data)
+    try:
+        with file_path.open('rb') as f:
+            while True:
+                data = f.read(chunk_size)
+                if not data:
+                    break
+                hasher.update(data)
+    except OSError:
+        return None
     return hasher.hexdigest()
 
 def compare_files(file1, file2, chunk_size=131072):
-    if file1.stat().st_size != file2.stat().st_size:
+    try:
+        if file1.stat().st_size != file2.stat().st_size:
+            return False
+        with file1.open('rb') as f1, file2.open('rb') as f2:
+            while True:
+                chunk1 = f1.read(chunk_size)
+                chunk2 = f2.read(chunk_size)
+                if not chunk1 and not chunk2:
+                    break
+                if chunk1 != chunk2:
+                    return False
+    except OSError:
         return False
-    with file1.open('rb') as f1, file2.open('rb') as f2:
-        while True:
-            chunk1 = f1.read(chunk_size)
-            chunk2 = f2.read(chunk_size)
-            if not chunk1 and not chunk2:
-                break
-            if chunk1 != chunk2:
-                return False
     return True
 
 def find_duplicates(directory):
     files = get_all_files(directory)
     duplicates = []
-    checked_files = {}
 
-    def process_file(file1):
-        file1_hash = file_hash(file1)
-        local_duplicates = []
+    size_groups = {}
+    size_lookup = {}
+    for file_path in files:
+        try:
+            size = file_path.stat().st_size
+        except OSError:
+            continue
+        size_groups.setdefault(size, []).append(file_path)
+        size_lookup[file_path] = size
 
-        if file1_hash in checked_files:
-            for file2 in checked_files[file1_hash]:
-                if compare_files(file1, file2):
-                    local_duplicates.append((file1, file2))
-        else:
-            checked_files[file1_hash] = []
+    files_to_hash = [
+        file_path
+        for group in size_groups.values()
+        if len(group) > 1
+        for file_path in group
+    ]
 
-        checked_files[file1_hash].append(file1)
-        return local_duplicates
-
-    max_threads = os.cpu_count() // 2
+    max_threads = max(1, (os.cpu_count() or 1) // 2)
+    hash_map = {}
     with concurrent.futures.ThreadPoolExecutor(max_threads) as executor:
-        futures = {executor.submit(process_file, file1): file1 for file1 in files}
+        futures = {executor.submit(file_hash, file_path): file_path for file_path in files_to_hash}
         for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures), desc="Processing files"):
-            duplicates.extend(future.result())
+            file_path = futures[future]
+            file_digest = future.result()
+            if file_digest is None:
+                continue
+            key = (size_lookup[file_path], file_digest)
+            hash_map.setdefault(key, []).append(file_path)
+
+    for group in hash_map.values():
+        if len(group) < 2:
+            continue
+        checked = []
+        for file_path in group:
+            for existing in checked:
+                if compare_files(file_path, existing):
+                    duplicates.append((file_path, existing))
+            checked.append(file_path)
 
     return duplicates
 
@@ -85,9 +116,10 @@ def format_file_size(size_in_bytes):
 
 def process_subfolders(main_folder):
     subfolders = [f for f in main_folder.iterdir() if f.is_dir()]
-    for subfolder in subfolders:
-        print(f"\033[92mScanning folder: {subfolder}\033[0m")  # Green for scanning folder
-        duplicates = find_duplicates(subfolder)
+    folders_to_scan = [main_folder] + subfolders
+    for folder in folders_to_scan:
+        print(f"\033[92mScanning folder: {folder}\033[0m")  # Green for scanning folder
+        duplicates = find_duplicates(folder)
 
         if duplicates:
             print("\033[93m\nDuplicate Files Found:\033[0m")  # Yellow for heading
