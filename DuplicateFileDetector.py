@@ -153,11 +153,31 @@ def process_subfolders(main_folder):
                 )
             )
 
-        headers = ("File 1 Path", "File 1 Name", "File 2 Path", "File 2 Name", "Size")
+        unique_paths = sorted({row[0] for row in table_rows} | {row[2] for row in table_rows})
+
+        def encode_path_index(index):
+            letters = []
+            while True:
+                index, remainder = divmod(index, 26)
+                letters.append(chr(ord("A") + remainder))
+                if index == 0:
+                    break
+                index -= 1
+            return "".join(reversed(letters))
+
+        path_lookup = {path: encode_path_index(idx) for idx, path in enumerate(unique_paths)}
+        print("\033[93mPath lookup:\033[0m")
+        for path in unique_paths:
+            label = path_lookup[path]
+            display_path = path or "."
+            print(f"{label}: {display_path}")
+        print()
+
+        headers = ("Path 1", "File 1 Name", "Path 2", "File 2 Name", "Size")
         col_widths = [
-            max(len(headers[0]), *(len(row[0]) for row in table_rows)),
+            max(len(headers[0]), *(len(path_lookup[row[0]]) for row in table_rows)),
             max(len(headers[1]), *(len(row[1]) for row in table_rows)),
-            max(len(headers[2]), *(len(row[2]) for row in table_rows)),
+            max(len(headers[2]), *(len(path_lookup[row[2]]) for row in table_rows)),
             max(len(headers[3]), *(len(row[3]) for row in table_rows)),
             max(len(headers[4]), *(len(row[4]) for row in table_rows)),
         ]
@@ -168,9 +188,11 @@ def process_subfolders(main_folder):
         print(separator_line)
 
         for path1, name1, path2, name2, size in table_rows:
-            colored_path1 = f"\033[91m{path1.ljust(col_widths[0])}\033[0m"
+            path1_label = path_lookup[path1]
+            path2_label = path_lookup[path2]
+            colored_path1 = f"\033[91m{path1_label.ljust(col_widths[0])}\033[0m"
             colored_name1 = f"\033[92m{name1.ljust(col_widths[1])}\033[0m"
-            colored_path2 = f"\033[91m{path2.ljust(col_widths[2])}\033[0m"
+            colored_path2 = f"\033[91m{path2_label.ljust(col_widths[2])}\033[0m"
             colored_name2 = f"\033[92m{name2.ljust(col_widths[3])}\033[0m"
             colored_size = f"\033[94m{size.ljust(col_widths[4])}\033[0m"
             print(" | ".join([colored_path1, colored_name1, colored_path2, colored_name2, colored_size]))
