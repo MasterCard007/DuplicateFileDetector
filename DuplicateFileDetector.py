@@ -5,12 +5,20 @@ import pandas as pd
 import concurrent.futures
 from tqdm import tqdm
 
+def normalize_input_path(raw_path: str) -> Path:
+    cleaned = raw_path.strip()
+    if cleaned.startswith("'") and cleaned.endswith("'"):
+        cleaned = cleaned[1:-1]
+    return Path(cleaned).expanduser().resolve()
+
 def get_folder_path(prompt):
     path = input(prompt)
-    while not Path(path).is_dir():
+    resolved = normalize_input_path(path)
+    while not resolved.is_dir():
         print("Invalid path. Please enter a valid folder path.")
         path = input(prompt)
-    return Path(path)
+        resolved = normalize_input_path(path)
+    return resolved
 
 def get_all_files(directory):
     files = []
@@ -57,7 +65,7 @@ def find_duplicates(directory):
 
     size_groups = {}
     size_lookup = {}
-    for file_path in files:
+    for file_path in tqdm(files, total=len(files), desc="Scanning files"):
         try:
             size = file_path.stat().st_size
         except OSError:
@@ -76,7 +84,11 @@ def find_duplicates(directory):
     hash_map = {}
     with concurrent.futures.ThreadPoolExecutor(max_threads) as executor:
         futures = {executor.submit(file_hash, file_path): file_path for file_path in files_to_hash}
-        for future in tqdm(concurrent.futures.as_completed(futures), total=len(futures), desc="Processing files"):
+        for future in tqdm(
+            concurrent.futures.as_completed(futures),
+            total=len(futures),
+            desc="Hashing duplicate candidates",
+        ):
             file_path = futures[future]
             file_digest = future.result()
             if file_digest is None:
