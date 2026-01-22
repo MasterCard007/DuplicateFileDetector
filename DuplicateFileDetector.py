@@ -7,8 +7,8 @@ from tqdm import tqdm
 
 def normalize_input_path(raw_path: str) -> Path:
     cleaned = raw_path.strip()
-    if cleaned.startswith("'") and cleaned.endswith("'"):
-        cleaned = cleaned[1:-1]
+    if cleaned and cleaned[0] == cleaned[-1] and cleaned[0] in {"'", '"'}:
+        cleaned = cleaned[1:-1].strip()
     return Path(cleaned).expanduser().resolve()
 
 def get_folder_path(prompt):
